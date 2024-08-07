@@ -10,6 +10,9 @@ Scripts/
 share/
 
 chroma/*
+!chroma/.gitkeep
+
 data/*
+!data/.gitkeep
 
 *.sqlite3
