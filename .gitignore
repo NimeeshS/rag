@@ -1,0 +1,15 @@
+*.pyc
+*.cfg
+
+__pycache__/
+blobs/
+Include/
+Lib/
+manifests/
+Scripts/
+share/
+
+chroma/*
+data/*
+
+*.sqlite3
