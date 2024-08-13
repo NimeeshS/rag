@@ -9,4 +9,7 @@ manifests/
 Scripts/
 share/
 
+chroma/*
+data/*
+
 *.sqlite3

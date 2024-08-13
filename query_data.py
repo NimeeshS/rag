@@ -13,7 +13,7 @@ Answer the question based only on the following context:
 
 ---
 
-Answer the question based on the above context: {question}
+Answer the question based ONLY on the above context: {question}
 """
 
 

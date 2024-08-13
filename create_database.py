@@ -8,22 +8,29 @@ from get_embedding_function import get_embedding_function
 from langchain_chroma import Chroma
 from tqdm import tqdm
 
-CHROMA_PATH = "chroma"
-DATA_PATH = "data"
+CHROMA_PATH = "chroma/"
+DATA_PATH = "data/"
 
 def main():
-    # Check if the database should be cleared (using the --clear flag).
     parser = argparse.ArgumentParser()
-    parser.add_argument("--reset", action="store_true", help="Reset the database.")
+    parser.add_argument("--resetchroma", action="store_true", help="Reset the chroma folder.")
+    parser.add_argument("--resetdata", action="store_true", help="Reset the data folder.")
     args = parser.parse_args()
-    if args.reset:
-        print("✨ Clearing Database")
-        clear_database()
+    run = True
+    if args.resetchroma:
+        print("✨ Clearing Chroma")
+        clear_chroma()
+        run = False
+    if args.resetdata:
+        print("✨ Clearing Chroma")
+        clear_data()
+        run = False
 
     # Create (or update) the data store.
-    documents = load_documents()
-    chunks = split_documents(documents)
-    add_to_chroma(chunks)
+    if run:
+        documents = load_documents()
+        chunks = split_documents(documents)
+        add_to_chroma(chunks)
 
 def load_documents():
     document_loader = PyPDFDirectoryLoader(DATA_PATH)
@@ -93,9 +100,15 @@ def calculate_chunk_ids(chunks):
 
     return chunks
 
-def clear_database():
+def clear_chroma():
     if os.path.exists(CHROMA_PATH):
         shutil.rmtree(CHROMA_PATH)
+        os.mkdir(CHROMA_PATH)
+
+def clear_data():
+    if os.path.exists(DATA_PATH):
+        shutil.rmtree(DATA_PATH)
+        os.mkdir(DATA_PATH)
 
 if __name__ == "__main__":
     main()
