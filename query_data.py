@@ -16,18 +16,6 @@ Answer the question based only on the following context:
 Answer the question based ONLY on the above context: {question}
 """
 
-PROMPT_TEMPLATE_SOURCE = """
-Provide the source that best answers the question
-
-Do NOT answer the question, only provide the source. The source should be listed as data/...
-
-Sources: 
-{context}
-
-Question:
-{question}
-"""
-
 def main():
     # Create CLI.
     parser = argparse.ArgumentParser()
@@ -50,16 +38,11 @@ def query_rag(query_text: str):
     prompt_template_answer = ChatPromptTemplate.from_template(PROMPT_TEMPLATE_ANSWER)
     prompt_answer = prompt_template_answer.format(context="\n".join([f"({source}) {context}" for source, context in zip(sources, context_text)]), 
                                     question=query_text)
-    
-    prompt_template_source = ChatPromptTemplate.from_template(PROMPT_TEMPLATE_ANSWER)
-    prompt_source = prompt_template_source.format(context="\n".join([f"({source}) {context}" for source, context in zip(sources, context_text)]), 
-                                    question=query_text)
 
     model = Ollama(model="mistral")
     response_text_answer = model.invoke(prompt_answer)
-    response_text_source = model.invoke(prompt_source)
 
-    formatted_response = f"Response: \n{response_text_answer}\n{response_text_source}"
+    formatted_response = f"Response: \n{response_text_answer}\n\nSources: {sources}"
     print(formatted_response)
     return response_text_answer
 
