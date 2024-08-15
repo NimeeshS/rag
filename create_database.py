@@ -2,6 +2,8 @@ import argparse
 import os
 import shutil
 from langchain_community.document_loaders.pdf import PyPDFDirectoryLoader
+from langchain_community.document_loaders.text import TextLoader
+from langchain_community.document_loaders.markdown import UnstructuredMarkdownLoader
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain.schema.document import Document
 from get_embedding_function import get_embedding_function
@@ -22,7 +24,7 @@ def main():
         clear_chroma()
         run = False
     if args.resetdata:
-        print("✨ Clearing Chroma")
+        print("✨ Clearing Data")
         clear_data()
         run = False
 
@@ -33,8 +35,25 @@ def main():
         add_to_chroma(chunks)
 
 def load_documents():
-    document_loader = PyPDFDirectoryLoader(DATA_PATH)
-    return document_loader.load()
+    documents = []
+    
+    # Load PDF files
+    pdf_loader = PyPDFDirectoryLoader(DATA_PATH)
+    documents.extend(pdf_loader.load())
+    
+    # Load TXT files
+    for filename in os.listdir(DATA_PATH):
+        if filename.endswith(".txt"):
+            txt_loader = TextLoader(os.path.join(DATA_PATH, filename))
+            documents.extend(txt_loader.load())
+    
+    # Load MD files
+    for filename in os.listdir(DATA_PATH):
+        if filename.endswith(".md"):
+            md_loader = UnstructuredMarkdownLoader(os.path.join(DATA_PATH, filename))
+            documents.extend(md_loader.load())
+
+    return documents
 
 def split_documents(documents: list[Document]):
     text_splitter = RecursiveCharacterTextSplitter(
@@ -74,9 +93,6 @@ def add_to_chroma(chunks: list[Document]):
         print("✅ No new documents to add")
 
 def calculate_chunk_ids(chunks):
-    # This will create IDs like "data/monopoly.pdf:6:2"
-    # Page Source : Page Number : Chunk Index
-
     last_page_id = None
     current_chunk_index = 0
 
@@ -85,17 +101,13 @@ def calculate_chunk_ids(chunks):
         page = chunk.metadata.get("page")
         current_page_id = f"{source}:{page}"
 
-        # If the page ID is the same as the last one, increment the index.
         if current_page_id == last_page_id:
             current_chunk_index += 1
         else:
             current_chunk_index = 0
 
-        # Calculate the chunk ID.
         chunk_id = f"{current_page_id}:{current_chunk_index}"
         last_page_id = current_page_id
-
-        # Add it to the page meta-data.
         chunk.metadata["id"] = chunk_id
 
     return chunks
