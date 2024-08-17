@@ -9,6 +9,7 @@ SQUAD_PATH = "squad_dataset.json"
 def main():
     # Create (or update) the data store.
     load_squad_to_chroma()
+    evaluate_rag()
 
 def load_squad_to_chroma():
     with open(SQUAD_PATH, 'r') as f:
@@ -24,7 +25,10 @@ def load_squad_to_chroma():
     chunks = split_documents(documents)
     add_to_chroma(chunks)
 
-def evaluate_rag(squad_data):
+def evaluate_rag():
+    with open(SQUAD_PATH, 'r') as f:
+        squad_data = json.load(f)
+
     exact_matches = []
     f1_scores = []
 
@@ -32,12 +36,18 @@ def evaluate_rag(squad_data):
         for paragraph in article['paragraphs']:
             for qa in paragraph['qas']:
                 question = qa['question']
-                ground_truth = qa['answers']['text']
+                ground_truth = list(set([qa["answers"][num]["text"] for num in range(4)]))
                 
                 generated_answer = query_rag(question)
 
                 # Exact Match (EM)
-                em = int(generated_answer.strip() in ground_truth)
+                em = 0
+
+                for possible_answer in ground_truth:
+                    if possible_answer in generated_answer:
+                        em = 1
+                        break
+
                 exact_matches.append(em)
 
                 # F1 Score
